@@ -1,0 +1,103 @@
+#########################
+# Transport
+#########################
+
+# Hostname
+myhostname = smtp.example.org
+
+# This container does not host local mailboxes
+mydestination =
+
+# Do not relay mail for other domains
+relay_domains =
+
+# Forward the virtual domains to the MDA through the LMTP protocol
+virtual_transport = lmtp:inet:mda:24
+
+# Virtual domain
+virtual_mailbox_domains = example.org
+
+# Use native resolution to resolve /etc/hosts entries (mda)
+lmtp_host_lookup = native
+
+
+#########################
+# Customizations
+#########################
+
+# Headers max size (in bytes)
+header_size_limit = 512000
+
+# Message max size (in bytes)
+message_size_limit = 52428800
+
+
+#########################
+# Anti Dos
+#########################
+
+# Require HELO header before commencing a MAIL transaction
+smtpd_helo_required = yes
+
+# The default maximal number of Postfix child processes that provide a given service
+default_process_limit = 100
+
+# How many simultaneous connections any client is allowed to make to this service
+smtpd_client_connection_count_limit = 10
+
+# The maximal number of connection attempts any client is allowed to make to this service per time unit (60s)
+smtpd_client_connection_rate_limit = 30
+
+# The maximal number of recipients that the Postfix SMTP server accepts per message delivery request
+smtpd_recipient_limit = 100
+
+
+#########################
+# Security
+#########################
+
+# SASL Support
+smtpd_sasl_auth_enable = yes
+
+# TLS encryption
+smtp_tls_security_level = may
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_key_file = /etc/ssl/localcerts/smtp.key.pem
+smtpd_tls_cert_file = /etc/ssl/localcerts/smtp.cert.pem
+smtpd_tls_loglevel = 0
+smtpd_tls_received_header = yes
+
+
+#########################
+# Restrictions
+#########################
+
+
+# HELO restrictions
+smtpd_helo_restrictions =
+                        permit_sasl_authenticated,
+                        reject_non_fqdn_helo_hostname,
+                        reject_invalid_helo_hostname,
+                        permit
+
+# FROM restrictions
+smtpd_sender_restrictions = 
+                        permit_sasl_authenticated,
+                        reject_non_fqdn_sender,
+                        reject_unknown_sender_domain,
+                        permit 
+
+# TO restrictions
+smtpd_recipient_restrictions = 
+                        reject_unauth_pipelining,
+                        reject_non_fqdn_recipient,
+                        reject_unknown_recipient_domain,
+                        permit_mynetworks,
+                        permit_sasl_authenticated,
+                        reject_unauth_destination,
+                        reject_unknown_client_hostname,
+                        reject_rbl_client zen.spamhaus.org,
+                        reject_rbl_client bl.spamcop.net,
+                        reject_rbl_client cbl.abuseat.org,
+                        permit
