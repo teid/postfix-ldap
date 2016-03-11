@@ -73,7 +73,7 @@ function services {
 	echo "#########################################"
 	echo "$1 Postfix"
 	echo "#########################################"
-	service postfix $1
+	postfix $1
 }
 
 # Set signal handlers
