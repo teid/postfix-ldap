@@ -81,6 +81,10 @@ trap "services stop" SIGINT
 trap "services stop" SIGTERM
 trap "services reload" SIGHUP
 
+# Add /etc/hosts into the chrooted folder
+mkdir -p /var/spool/postfix/etc
+cp /etc/hosts /var/spool/postfix/etc/hosts
+
 # Start services
 services start
 
