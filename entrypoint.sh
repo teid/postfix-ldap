@@ -81,9 +81,16 @@ trap "services stop" SIGINT
 trap "services stop" SIGTERM
 trap "services reload" SIGHUP
 
-# Add /etc/hosts into the chrooted folder
+# Add dependencies into the chrooted folder
+echo "Adding /etc/hosts into postfix jail"
 mkdir -p /var/spool/postfix/etc
-cp /etc/hosts /var/spool/postfix/etc/hosts
+cp -v /etc/hosts /var/spool/postfix/etc/hosts
+echo "Adding /etc/services into postfix jail"
+cp -v /etc/services /var/spool/postfix/etc/services
+cp -v /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
+echo "Adding name resolution libs into postfix jail"
+mkdir -p "/var/spool/postfix/lib/$(uname -m)-linux-gnu"
+cp -v /lib/$(uname -m)-linux-gnu/libnss_* "/var/spool/postfix/lib/$(uname -m)-linux-gnu/"
 
 # Start services
 services start
