@@ -77,18 +77,16 @@ function services {
 }
 
 # Set signal handlers
-trap "services stop" SIGINT
-trap "services stop" SIGTERM
+trap "services stop; exit 0" SIGINT SIGTERM
 trap "services reload" SIGHUP
 
 # Add dependencies into the chrooted folder
-echo "Adding /etc/hosts into postfix jail"
+echo "Adding host configurations into postfix jail"
 mkdir -p /var/spool/postfix/etc
 cp -v /etc/hosts /var/spool/postfix/etc/hosts
-echo "Adding /etc/services into postfix jail"
 cp -v /etc/services /var/spool/postfix/etc/services
+echo "Adding name resolution tools into postfix jail"
 cp -v /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
-echo "Adding name resolution libs into postfix jail"
 mkdir -p "/var/spool/postfix/lib/$(uname -m)-linux-gnu"
 cp -v /lib/$(uname -m)-linux-gnu/libnss_* "/var/spool/postfix/lib/$(uname -m)-linux-gnu/"
 
@@ -96,4 +94,5 @@ cp -v /lib/$(uname -m)-linux-gnu/libnss_* "/var/spool/postfix/lib/$(uname -m)-li
 services start
 
 # Redirect logs to stdout
-tail -F "/var/log/mail.log"
+tail -F "/var/log/mail.log" &
+wait $!
