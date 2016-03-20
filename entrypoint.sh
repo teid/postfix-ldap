@@ -5,8 +5,6 @@
 # Setup conf
 #########################################
 
-
-
 # Set LDAP conf: ldap_search_base (ex: base=dc=mail, dc=example, dc=org)
 if [ -n "$LDAP_BASE" ]; then
 	sed -i "s/^ldap_search_base\s*:.*$/ldap_search_base: $LDAP_BASE/" /etc/postfix/saslauthd.conf
@@ -26,6 +24,7 @@ fi
 if [ -n "$HOSTNAME" ]; then
 	sed -i "s/^myhostname\s*=.*$/myhostname = $HOSTNAME/" /etc/postfix/main.cf
 fi
+
 
 
 #########################################
@@ -49,6 +48,22 @@ if [ ! -f $CERT_PATH ] || [ ! -f $KEY_PATH ]; then
     openssl x509 -req -days 3650 -in $CSR_PATH -signkey $KEY_PATH -out $CERT_PATH
 fi
 
+
+
+#############################################
+# Add dependencies into the chrooted folder
+#############################################
+
+echo "Adding host configurations into postfix jail"
+rm -rf /var/spool/postfix/etc
+mkdir -p /var/spool/postfix/etc
+cp -v /etc/hosts /var/spool/postfix/etc/hosts
+cp -v /etc/services /var/spool/postfix/etc/services
+cp -v /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
+echo "Adding name resolution tools into postfix jail"
+rm -rf "/var/spool/postfix/lib"
+mkdir -p "/var/spool/postfix/lib/$(uname -m)-linux-gnu"
+cp -v /lib/$(uname -m)-linux-gnu/libnss_* "/var/spool/postfix/lib/$(uname -m)-linux-gnu/"
 
 
 
@@ -79,16 +94,6 @@ function services {
 # Set signal handlers
 trap "services stop; exit 0" SIGINT SIGTERM
 trap "services reload" SIGHUP
-
-# Add dependencies into the chrooted folder
-echo "Adding host configurations into postfix jail"
-mkdir -p /var/spool/postfix/etc
-cp -v /etc/hosts /var/spool/postfix/etc/hosts
-cp -v /etc/services /var/spool/postfix/etc/services
-echo "Adding name resolution tools into postfix jail"
-cp -v /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
-mkdir -p "/var/spool/postfix/lib/$(uname -m)-linux-gnu"
-cp -v /lib/$(uname -m)-linux-gnu/libnss_* "/var/spool/postfix/lib/$(uname -m)-linux-gnu/"
 
 # Start services
 services start
