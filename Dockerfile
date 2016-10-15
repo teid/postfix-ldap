@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
 	rsyslog \
 	postfix \
 	postfix-ldap \
+	opendkim \
+	opendkim-tools \
 	sasl2-bin \
 	libsasl2-modules-ldap \
 && rm -rf /var/lib/apt/lists/*

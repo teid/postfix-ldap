@@ -2,6 +2,19 @@
 
 
 #########################################
+# Feature functions
+#########################################
+
+function isDkimEnabled() {
+    if [ -n "$DKIM_SELECTOR" ] && [ -n "$DOMAIN" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+
+#########################################
 # Setup conf
 #########################################
 
@@ -25,6 +38,26 @@ if [ -n "$HOSTNAME" ]; then
 	sed -i "s/^myhostname\s*=.*$/myhostname = $HOSTNAME/" /etc/postfix/main.cf
 fi
 
+# Set OpenDKIM: domain
+if [ -n "$DOMAIN" ]; then
+	sed -i "s/^Domain\s.*$/Domain $DOMAIN/" /etc/opendkim.conf
+fi
+
+# Set OpenDKIM: selector
+if [ -n "$DKIM_SELECTOR" ]; then
+	sed -i "s/^Selector\s.*$/Selector $DKIM_SELECTOR/" /etc/opendkim.conf
+fi
+
+
+#########################################
+# Enable features
+#########################################
+
+# Enable OpenDKIM
+if isDkimEnabled; then
+	sed -i "s/^#\s*smtpd_milters\s/smtpd_milters /" /etc/postfix/main.cf
+	sed -i "s/^#\s*non_smtpd_milters\s/non_smtpd_milters /" /etc/postfix/main.cf
+fi
 
 
 #########################################
@@ -35,17 +68,27 @@ CERT_FOLDER="/etc/ssl/localcerts"
 KEY_PATH="$CERT_FOLDER/smtp.key.pem"
 CSR_PATH="$CERT_FOLDER/smtp.csr.pem"
 CERT_PATH="$CERT_FOLDER/smtp.cert.pem"
+DKIM_PRIV_KEY_PATH="$CERT_FOLDER/dkim.key.pem"
+DKIM_PUBL_KEY_PATH="$CERT_FOLDER/dkim.pub.pem"
 
+# Generate self signed certificate
 if [ ! -f $CERT_PATH ] || [ ! -f $KEY_PATH ]; then
-	mkdir -p $CERT_FOLDER
-
+    mkdir -p $CERT_FOLDER
     echo "SSL Key or certificate not found. Generating self-signed certificates"
     openssl genrsa -out $KEY_PATH
-
     openssl req -new -key $KEY_PATH -out $CSR_PATH \
     -subj "/CN=smtp"
-
     openssl x509 -req -days 3650 -in $CSR_PATH -signkey $KEY_PATH -out $CERT_PATH
+fi
+
+# Generate DKIM keys
+if [ ! -f $DKIM_PRIV_KEY_PATH ]; then
+    mkdir -p $CERT_FOLDER
+    echo "DKIM Key not found. Generating a new one"
+    openssl genrsa -out $DKIM_PRIV_KEY_PATH 1024
+    openssl rsa -in $DKIM_PRIV_KEY_PATH -pubout -out $DKIM_PUBL_KEY_PATH
+    chmod 400 $DKIM_PRIV_KEY_PATH
+    chmod 400 $DKIM_PUBL_KEY_PATH
 fi
 
 
@@ -83,6 +126,14 @@ function services {
 	echo "$1 SASL"
 	echo "#########################################"
 	service saslauthd $1
+
+	if isDkimEnabled; then
+		echo ""
+		echo "#########################################"
+		echo "$1 OpenDKIM"
+		echo "#########################################"
+		service opendkim $1
+	fi
 
 	echo ""
 	echo "#########################################"
