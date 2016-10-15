@@ -6,11 +6,12 @@ A Docker image running Postfix on Debian stable ("jessie" at the moment) with th
 The Postfix is configured to :
 * Relay incoming mails going to `$DOMAIN` to the `mda` host using the `LMTP` protocol. (MDA: Mail Delivery Agent)
 * Relay outgoing mails to other domains only if the user is authenticated (using `LDAP` backend)
+* Sign the outgoing mails and verify the incoming ones (DKIM)
 
 Interfaces
 ----------
 
-The image exposes several TCP ports. The IMAP and POP ports used to access to the mailboxes. The LMTP port to ship messages to the mailboxes:
+The image exposes several TCP ports:
 * 25: SMTP port
 * 587: Submission port
 * 465: SMTPS port
@@ -53,10 +54,14 @@ However, you should use your own certificate and a data-only container to persis
     -e HOSTNAME="smtp.yourdomain.com"
     teid/postfix-ldap
 
-The following environment variables allows you to override some LDAP configurations:
-* LDAP_BASE: The base dn of the LDAP users
-* LDAP_USER_FIELD: The name of the LDAP field used to check `username`
-* DOMAIN: The domain used for local delivery (forward to the `mda` host)
-* HOSTNAME: The name resolution of the container public IP (ex: `smtp.yourdomain.com`. Used during HELO commands. Some remote SMTP server might refuse your messages if this variable is missing or misconfigured
+Configuration
+----------------
 
-*Note: If you are using a custom configuration volume with this variables, your configuration files might be altered. You should not use both features.*
+*Note: If you are using a custom configuration volume, do not use the following variables.*
+
+The following environment variables allow you to configure the container:
+* LDAP_BASE (required): The base dn of the LDAP users
+* LDAP_USER_FIELD (required): The name of the LDAP field used to check `username`
+* DOMAIN (required): The domain used for local delivery (forward to the `mda` host)
+* HOSTNAME (required): The name resolution of the container public IP (ex: `smtp.yourdomain.com`). Used during HELO commands. Some remote SMTP server might refuse your messages if this variable is missing or misconfigured
+* DKIM_SELECTOR: If filled, the DKIM feature will be used to verify incoming emails and sign outgoing ones with this selector.
