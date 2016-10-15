@@ -31,7 +31,6 @@ header_size_limit = 512000
 # Message max size (in bytes)
 message_size_limit = 52428800
 
-
 #########################
 # Anti Dos
 #########################

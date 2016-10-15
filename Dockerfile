@@ -32,8 +32,9 @@ RUN sed -i 's/^OPTIONS=.*$/OPTIONS="-c -m \/var\/spool\/postfix\/var\/run\/sasla
 RUN adduser postfix sasl
 RUN ln -s /etc/postfix/saslauthd.conf /etc/saslauthd.conf
 
+
 # Add postfix conf
-ADD postfix_conf /etc/postfix
+ADD resources /
 
 # Setup startup script
 ADD entrypoint.sh /entrypoint.sh
