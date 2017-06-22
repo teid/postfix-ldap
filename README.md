@@ -65,3 +65,6 @@ The following environment variables allow you to configure the container:
 * DOMAIN (required): The domain used for local delivery (forward to the `mda` host)
 * HOSTNAME (required): The name resolution of the container public IP (ex: `smtp.yourdomain.com`). Used during HELO commands. Some remote SMTP server might refuse your messages if this variable is missing or misconfigured
 * DKIM_SELECTOR: If filled, the DKIM feature will be used to verify incoming emails and sign outgoing ones with this selector.
+* SSL_KEY_PATH: The SSL private key path
+* SSL_CERT_PATH: The SSL certificate path
+

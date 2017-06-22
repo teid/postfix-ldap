@@ -38,6 +38,16 @@ if [ -n "$HOSTNAME" ]; then
 	sed -i "s/^myhostname\s*=.*$/myhostname = $HOSTNAME/" /etc/postfix/main.cf
 fi
 
+# Set Postfix conf: smtpd_tls_key_file (ex: /etc/ssl/localcerts/smtp.key.pem)
+if [ -n "$SSL_KEY_PATH" ]; then
+	sed -i "s#^smtpd_tls_key_file\s*=.*\$#smtpd_tls_key_file = $SSL_KEY_PATH#" /etc/postfix/main.cf
+fi
+
+# Set Postfix conf: smtpd_tls_key_file (ex: /etc/ssl/localcerts/smtp.cert.pem)
+if [ -n "$SSL_CERT_PATH" ]; then
+	sed -i "s#^smtpd_cert_key_file\s*=.*\$#smtpd_cert_key_file = $SSL_CERT_PATH#" /etc/postfix/main.cf
+fi
+
 # Set OpenDKIM: domain
 if [ -n "$DOMAIN" ]; then
 	sed -i "s/^Domain\s.*$/Domain $DOMAIN/" /etc/opendkim.conf
@@ -65,11 +75,21 @@ fi
 #########################################
 
 CERT_FOLDER="/etc/ssl/localcerts"
-KEY_PATH="$CERT_FOLDER/smtp.key.pem"
-CSR_PATH="$CERT_FOLDER/smtp.csr.pem"
-CERT_PATH="$CERT_FOLDER/smtp.cert.pem"
+CSR_PATH="/tmp/smtp.csr.pem"
 DKIM_PRIV_KEY_PATH="$CERT_FOLDER/dkim.key.pem"
 DKIM_PUBL_KEY_PATH="$CERT_FOLDER/dkim.pub.pem"
+
+if [ -n "$SSL_KEY_PATH" ]; then
+    KEY_PATH=$SSL_KEY_PATH
+else
+    KEY_PATH="$CERT_FOLDER/smtp.key.pem"
+fi
+
+if [ -n "$SSL_CERT_PATH" ]; then
+    CERT_PATH=$SSL_CERT_PATH
+else
+    CERT_PATH="$CERT_FOLDER/smtp.cert.pem"
+fi
 
 # Generate self signed certificate
 if [ ! -f $CERT_PATH ] || [ ! -f $KEY_PATH ]; then
