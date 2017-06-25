@@ -45,7 +45,7 @@ fi
 
 # Set Postfix conf: smtpd_tls_key_file (ex: /etc/ssl/localcerts/smtp.cert.pem)
 if [ -n "$SSL_CERT_PATH" ]; then
-	sed -i "s#^smtpd_cert_key_file\s*=.*\$#smtpd_cert_key_file = $SSL_CERT_PATH#" /etc/postfix/main.cf
+	sed -i "s#^smtpd_tls_cert_file\s*=.*\$#smtpd_tls_cert_file = $SSL_CERT_PATH#" /etc/postfix/main.cf
 fi
 
 # Set OpenDKIM: domain
